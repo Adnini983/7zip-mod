@@ -135,6 +135,8 @@ function Patch-LangStrings {
 function Fetch-Lang {
   if ($SkipLang) { Write-Host "==> skipping Lang\ (SkipLang)"; return }
   Write-Host "==> fetching official 7-Zip 26.03 Lang\ ..."
+  # Fresh CI checkout has no build\ dir — create it before writing the download.
+  New-Item -ItemType Directory -Path (Join-Path $Root 'build') -Force | Out-Null
   $pkg = Join-Path $Root 'build\7z2603-x64.exe'
   $exeDir = Join-Path $Root 'build\7z2603-x64'
   $dst = Join-Path $Root 'build\x64\Lang'
