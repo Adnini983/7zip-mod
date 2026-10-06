@@ -109,9 +109,18 @@ jobs:
       - name: Publish GitHub Release (on tags)
         if: startsWith(github.ref, 'refs/tags/')
         shell: powershell
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$env:GITHUB_REF_NAME" `
-            "build/7z2603-mod-win-x64.zip" `
-            --repo "$env:GITHUB_REPOSITORY" `
-            --title "7-Zip MOD $env:GITHUB_REF_NAME" `
-            --notes "GPL-compliant release: binaries + Lang + licenses + source (src/) in the repo."
+          $ref  = "$env:GITHUB_REF_NAME"
+          $repo = "$env:GITHUB_REPOSITORY"
+          $zip  = "build/7z2603-mod-win-x64.zip"
+          $title = "7-Zip MOD $ref"
+          $notes = "GPL-compliant release: binaries + Lang + licenses + source (src/) in the repo."
+          # Idempotent: if a release already exists for this tag (e.g. manually
+          # created), just upload/overwrite the asset; otherwise create it.
+          if (gh release view $ref --repo $repo 2>$null) {
+            gh release upload $ref $zip --repo $repo --clobber
+          } else {
+            gh release create $ref $zip --repo $repo --title $title --notes $notes
+          }
