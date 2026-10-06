@@ -24,5 +24,10 @@ Debug/
 Release/
 .vs/
 
+# ...but src/Asm/x86 is 7-Zip's real assembly SOURCE (needed by the build),
+# not build output — re-include it so the asm files get committed.
+!src/Asm/
+!src/Asm/x86/
+
 # Prebuilt engine library (rebuild from src/trrntzip-engine)
 src/trrntzip-engine/TorrentZipEngine.lib

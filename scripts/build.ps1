@@ -99,6 +99,14 @@ function Build-Engine {
 
 # --------------------------------------------------------------- 7-Zip (nmake)
 function Build-7zip {
+  # Guard: the 7-Zip build needs the assembly sources under src/Asm (e.g.
+  # x86/AesOpt.asm). A plain nmake failure for a missing asm file surfaces as an
+  # obscure "NMAKE fatal error U1073" — fail clearly instead. If this fires, the
+  # asm files were not committed (e.g. a .gitignore 'x86/' rule ate src/Asm/x86).
+  $asm = Join-Path $cpp '..\Asm\x86\AesOpt.asm'
+  if (-not (Test-Path $asm)) {
+    throw "assembly source missing: $asm — ensure src/Asm (incl. x86\*.asm) is committed and not gitignored"
+  }
   Write-Host "==> building 7z.dll (Format7zF) ..."
   Invoke-Checked (Join-Path $cpp '7zip\Bundles\Format7zF') @('nmake','-nologo','PLATFORM=x64')
   Write-Host "==> building 7zFM.exe (Fm) ..."
