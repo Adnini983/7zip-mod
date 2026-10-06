@@ -55,6 +55,16 @@ jobs:
           $h4 = (Get-FileHash "$w\b.pak" -Algorithm SHA256).Hash
           if ($h3 -ne $h4) { throw "pak not deterministic: $h3 vs $h4" }
           Write-Host "pak round-trip OK  sha=$h3"
+          # --- UE4 pak round-trip (handler now built into 7z.dll) ---
+          Set-Content -Path "$w\u.umap" -Value 'UE4 pak smoke payload ABCXYZ' -Encoding ascii
+          & "$exe\7z.exe" a "-tpak(UE4)" -m9 "$w\u.pak" "$w\u.umap" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "ue pak pack failed" }
+          & "$exe\7z.exe" x "$w\u.pak" "-o$w\uout" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "ue pak extract failed" }
+          $h5 = (Get-FileHash "$w\u.umap" -Algorithm SHA256).Hash
+          $h6 = (Get-FileHash "$w\uout\u.umap" -Algorithm SHA256).Hash
+          if ($h5 -ne $h6) { throw "ue pak round-trip mismatch: $h5 vs $h6" }
+          Write-Host "ue4 pak round-trip OK  sha=$h5"
 
       - name: Assemble GPL release package (binaries + Lang + licenses)
         shell: powershell

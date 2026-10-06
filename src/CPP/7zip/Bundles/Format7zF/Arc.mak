@@ -68,6 +68,7 @@ AR_OBJS = \
   $O\ComHandler.obj \
   $O\CpioHandler.obj \
   $O\PakHandler.obj \
+  $O\UEPakHandler.obj \
   $O\CramfsHandler.obj \
   $O\DeflateProps.obj \
   $O\DmgHandler.obj \

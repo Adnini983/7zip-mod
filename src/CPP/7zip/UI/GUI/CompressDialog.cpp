@@ -44,6 +44,37 @@ extern bool g_IsNT;
 // or the "auto" entry (-1).
 static const int kTorrentZip_MethodId = (int)(Int32)-2;
 
+// 7-Zip MOD: the pak(UE4) format is store-only. Its method combo selects the
+// target Unreal Engine Pak version (2..9, simple-index layout). Each entry's
+// ItemData is encoded as -(100 + version) so it stays negative and never
+// collides with real method IDs or the -1 "auto" entry.
+static const int kUEPak_MethodId_Base = (int)(Int32)-100;
+static int UEPak_VersionToItemData(int version) { return -(100 + version); }
+static int UEPak_ItemDataToVersion(int itemData)
+{
+  if (itemData < kUEPak_MethodId_Base)
+  {
+    const int v = -itemData - 100;
+    if (v >= 2 && v <= 9)
+      return v;
+  }
+  return -1;
+}
+// engine version ranges for the Pak versions we can write (repak map)
+static const char * const kUEPak_VerDescs[] =
+{
+  "",
+  "",
+  "UE4 v2 (4.0-4.2)",
+  "UE4 v3 (4.3-4.15)",
+  "UE4 v4 (4.16-4.19)",
+  "UE4 v5 (4.20)",
+  "",
+  "UE4 v7 (4.21)",
+  "UE4 v8 (4.22-4.24)",
+  "UE4 v9 (4.25)"
+};
+
 #ifdef Z7_LANG
 
 // #define IDS_OPTIONS 2100
@@ -784,6 +815,7 @@ void CCompressDialog::FormatChanged(bool isChanged)
   SetMemoryUsage();
   SetTorrentZipMode();
   SetPakMode();
+  SetUEPakMode();
 }
 
 
@@ -1707,6 +1739,25 @@ void CCompressDialog::SetMethod2(int keepMethodId)
     SetPakMode();
     return;
   }
+
+  // 7-Zip MOD: pak(UE4) is store-only; the method combo selects the target
+  // Unreal Engine Pak version instead of a compression codec.
+  if (ai.Is_UEPak())
+  {
+    _auto_MethodId = UEPak_VersionToItemData(9);
+    for (int ver = 2; ver <= 9; ver++)
+    {
+      if (ver == 6)
+        continue;   // Pak version 6 does not exist
+      const int itemIndex = (int)ComboBox_AddStringAscii_SetItemData(
+          m_Method, kUEPak_VerDescs[ver], (LPARAM)UEPak_VersionToItemData(ver));
+      if (ver == 9)
+        m_Method.SetCurSel(itemIndex);
+    }
+    SetUEPakMode();
+    return;
+  }
+
   const bool isSfx = IsSFX();
   bool weUseSameMethod = false;
 
@@ -1873,6 +1924,39 @@ void CCompressDialog::SetPakMode()
   }
 }
 
+// 7-Zip MOD: pak(UE4) is store-only by default. The compression level, dictionary,
+// solid, threads and memory rows are meaningless and are locked, with an
+// explanatory hint. The method combo stays enabled so the user can pick another
+// UE version; zlib compression is triggered by typing "zlib" in the parameters field.
+void CCompressDialog::SetUEPakMode()
+{
+  const bool uePak = Get_ArcInfoEx().Is_UEPak();
+  ShowItem_Bool(IDT_COMPRESS_UEPAK_HINT, uePak);
+  if (!uePak)
+    return;
+
+  const bool enable = false;
+  EnableItem(IDT_COMPRESS_LEVEL,         enable);
+  EnableItem(IDC_COMPRESS_LEVEL,         enable);
+  EnableItem(IDT_COMPRESS_DICTIONARY,     enable);
+  EnableItem(IDC_COMPRESS_DICTIONARY,     enable);
+  EnableItem(IDT_COMPRESS_ORDER,          enable);
+  EnableItem(IDC_COMPRESS_ORDER,          enable);
+  EnableItem(IDT_COMPRESS_SOLID,          enable);
+  EnableItem(IDC_COMPRESS_SOLID,          enable);
+  EnableItem(IDT_COMPRESS_THREADS,        enable);
+  EnableItem(IDC_COMPRESS_THREADS,        enable);
+  EnableItem(IDT_COMPRESS_MEMORY,         enable);
+  EnableItem(IDC_COMPRESS_MEM_USE,        enable);
+  EnableItem(IDT_COMPRESS_MEMORY_VALUE,   enable);
+  EnableItem(IDT_COMPRESS_MEMORY_DE,      enable);
+  EnableItem(IDT_COMPRESS_MEMORY_DE_VALUE, enable);
+
+  UString s;
+  LangString(IDS_COMPRESS_UEPAK_LOCKED, s);
+  SetItemText(IDT_COMPRESS_UEPAK_HINT, s);
+}
+
 bool CCompressDialog::IsXzFormat()
 {
   return Get_ArcInfoEx().Is_Xz();
@@ -1931,6 +2015,20 @@ UString CCompressDialog::GetMethodSpec(UString &estimatedName)
   if (m_Method.GetCount() < 1)
     return estimatedName;
   const int methodIdRaw = GetMethodID_RAW();
+  if (Get_ArcInfoEx().Is_UEPak())
+  {
+    // 7-Zip MOD: the pak(UE4) method combo selects the target UE Pak version.
+    // Expose that version as the method name ("2".."9") so it is passed to the
+    // handler via -mVersion (property "m").
+    const int ver = UEPak_ItemDataToVersion(methodIdRaw);
+    if (ver > 0)
+    {
+      UString v;
+      v.Add_UInt32(ver);
+      estimatedName = v;
+      return v;
+    }
+  }
   if (methodIdRaw == kTorrentZip_MethodId)
   {
     // 7-Zip MOD: TorrentZip compresses with zlib DEFLATE (best compression);

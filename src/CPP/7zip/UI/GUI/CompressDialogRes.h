@@ -76,6 +76,11 @@
 #define IDS_COMPRESS_PAK_LOCKED         30002
 #define IDT_COMPRESS_PAK_HINT           4023
 
+// 7-Zip MOD: UE4 .pak(UE4) is store-only; compression params are locked and
+// the method combo selects the target Unreal Engine Pak version instead.
+#define IDS_COMPRESS_UEPAK_LOCKED       30003
+#define IDT_COMPRESS_UEPAK_HINT         4024
+
 #define IDX_COMPRESS_NT_SYM_LINKS       4040
 #define IDX_COMPRESS_NT_HARD_LINKS      4041
 #define IDX_COMPRESS_NT_ALT_STREAMS     4042

@@ -196,6 +196,7 @@ struct CArcInfoEx
   bool Is_Rar()   const { return Name.IsEqualTo_Ascii_NoCase("rar"); }
   bool Is_Zstd()  const { return Name.IsEqualTo_Ascii_NoCase("zstd"); }
   bool Is_Pak()   const { return Name.IsEqualTo_Ascii_NoCase("pak"); }
+  bool Is_UEPak() const { return Name.IsEqualTo_Ascii_NoCase("pak(UE4)"); }
 
   /*
   UString GetAllExtensions() const

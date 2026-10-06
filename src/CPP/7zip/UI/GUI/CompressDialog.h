@@ -257,6 +257,9 @@ public:
   bool IsPakMethod();
   void SetPakMode();
 
+  // 7-Zip MOD: pak(UE4) store-only; method combo selects UE Pak version
+  void SetUEPakMode();
+
 
   void SetEncryptionMethod();
 

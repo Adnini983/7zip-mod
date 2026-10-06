@@ -161,8 +161,8 @@ function Fetch-Lang {
     if (Test-Path $dst) { Remove-Item $dst -Recurse -Force }
     Copy-Item $srcLang $dst -Recurse
     # Patch in the MOD hint strings (zh-cn simplified, zh-tw traditional).
-    $cn = "30001`nTorrentZip 压缩方法不允许调整详细压缩参数`n30002`nPopCap PAK(PC) 压缩方法不允许调整详细压缩参数"
-    $tw = "30001`nTorrentZip 壓縮方法不允許調整詳細壓縮參數`n30002`nPopCap PAK(PC) 壓縮方法不允許調整詳細壓縮參數"
+    $cn = "30001`nTorrentZip 压缩方法不允许调整详细压缩参数`n30002`nPopCap PAK(PC) 压缩方法不允许调整详细压缩参数`n30003`npak(UE4) 为仅存储格式，压缩参数固定，请在上方选择目标 UE4 版本"
+    $tw = "30001`nTorrentZip 壓縮方法不允許調整詳細壓縮參數`n30002`nPopCap PAK(PC) 壓縮方法不允許調整詳細壓縮參數`n30003`npak(UE4) 為僅儲存格式，壓縮參數固定，請在上方選擇目標 UE4 版本"
     Patch-LangStrings (Join-Path $dst 'zh-cn.txt') $cn
     Patch-LangStrings (Join-Path $dst 'zh-tw.txt') $tw
   } else {

@@ -107,6 +107,7 @@ BEGIN
 
   LTEXT     "", IDT_COMPRESS_TORRENTZIP_HINT, m, 282, gSize, 8, SS_NOPREFIX
   LTEXT     "", IDT_COMPRESS_PAK_HINT, m, 282, gSize, 8, SS_NOPREFIX
+  LTEXT     "", IDT_COMPRESS_UEPAK_HINT, m, 282, gSize, 8, SS_NOPREFIX
 
   PUSHBUTTON  "Options", IDB_COMPRESS_OPTIONS, m, 292, bxs, bys
   LTEXT     "", IDT_COMPRESS_OPTIONS, m + bxs + m, 294, gSize - bxs - m, 16, SS_NOPREFIX
@@ -232,6 +233,7 @@ BEGIN
     IDS_MEM_OPERATION_BLOCKED  "The operation was blocked by 7-Zip."
 
     IDS_COMPRESS_TORRENTZIP_LOCKED  "Detailed compression parameters are locked to the TorrentZip specification"
+    IDS_COMPRESS_UEPAK_LOCKED  "pak(UE4) is store-only: compression parameters are fixed. Choose the target Unreal Engine version above."
 END
 
 
