@@ -1,0 +1,117 @@
+name: build
+
+# 7-Zip MOD — CI 工作流
+# 构建 7-Zip 26.03 改造版（TorrentZip 引擎内嵌 + PopCap PAK 支持），
+# 组装符合 GPL 规范的 Release 包，并做自包含的 pak 往返字节校验。
+#
+# 依赖锁定（见 README.md）：
+#   - zlib 1.2.2  仓库自带（src/zlib-1.2.2），从源码用 nmake 编译（/MT 静态）
+#   - CMake 3.12  仅用于外部参考程序（trrntzip.exe）的字节对比；7-Zip 本体用 nmake
+#   - MSVC        由 ilammy/msvc-dev-cmd 提供 vcvars64 环境（nmake/cl/lib）
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: MSVC x64 environment
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Build (zlib → TorrentZipEngine.lib → 7z.dll/7zFM/7z.exe/7z.sfx)
+        shell: powershell
+        run: |
+          powershell -ExecutionPolicy Bypass -File scripts\build.ps1 -Root $env:GITHUB_WORKSPACE
+
+      - name: Self-contained pak round-trip byte check
+        shell: powershell
+        run: |
+          $bin = "$env:GITHUB_WORKSPACE\src\CPP\7zip\Bundles\Format7zF\x64"
+          $exe = "$env:GITHUB_WORKSPACE\src\CPP\7zip\UI\Console\x64"
+          $w = "$env:RUNNER_TEMP\paksmoke"
+          New-Item -ItemType Directory -Path $w | Out-Null
+          Set-Content -Path "$w\in.txt" -Value 'PopCap smoke test content 0123456789' -Encoding ascii
+          & "$exe\7z.exe" a "-tPak" "$w\a.pak" "$w\in.txt" | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "pak pack failed" }
+          & "$exe\7z.exe" x "$w\a.pak" "-o$w\out" -y | Out-Null
+          if ($LASTEXITCODE -ne 0) { throw "pak extract failed" }
+          $h1 = (Get-FileHash "$w\in.txt" -Algorithm SHA256).Hash
+          $h2 = (Get-FileHash "$w\out\in.txt" -Algorithm SHA256).Hash
+          if ($h1 -ne $h2) { throw "pak round-trip mismatch: $h1 vs $h2" }
+          # re-pack must be deterministic byte-exact (store-only XOR pak)
+          & "$exe\7z.exe" a "-tPak" "$w\b.pak" "$w\out\in.txt" | Out-Null
+          $h3 = (Get-FileHash "$w\a.pak" -Algorithm SHA256).Hash
+          $h4 = (Get-FileHash "$w\b.pak" -Algorithm SHA256).Hash
+          if ($h3 -ne $h4) { throw "pak not deterministic: $h3 vs $h4" }
+          Write-Host "pak round-trip OK  sha=$h3"
+
+      - name: Assemble GPL release package (binaries + Lang + licenses)
+        shell: powershell
+        run: |
+          $root = $env:GITHUB_WORKSPACE
+          $src  = "$root\src\CPP\7zip"
+          $rel  = "$root\build\release"
+          $bin  = "$root\build\x64"
+          New-Item -ItemType Directory -Path $rel -Force | Out-Null
+          New-Item -ItemType Directory -Path $bin -Force | Out-Null
+          # binaries
+          Copy-Item "$src\Bundles\Format7zF\x64\7z.dll" $bin
+          Copy-Item "$src\Bundles\Fm\x64\7zFM.exe"     $bin
+          Copy-Item "$src\UI\Console\x64\7z.exe"       $bin
+          Copy-Item "$src\Bundles\SFXWin\x64\7z.sfx"   $bin
+          # official Lang (patched by build.ps1 into $bin\Lang)
+          if (Test-Path "$bin\Lang") {
+            Copy-Item "$bin\Lang" $rel -Recurse
+          } else {
+            Write-Host "no Lang; install official 7z2603-x64.exe and copy Lang\"
+          }
+          # licenses + README at release root
+          foreach ($f in 'COPYING','COPYING.LESSER','NOTICE','LICENSE.md','README.md') {
+            if (Test-Path "$root\$f") { Copy-Item "$root\$f" $rel }
+          }
+          # zip the GPL release (binaries + Lang + licenses)
+          $assets = Get-ChildItem $bin -File
+          foreach ($f in $assets) { Copy-Item $f.FullName $rel }
+          Compress-Archive -Path "$rel\*" -DestinationPath "$root\build\7z2603-mod-win-x64.zip" -Force
+          Write-Host "release zip: $root\build\7z2603-mod-win-x64.zip"
+
+      - name: Upload release artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: 7z2603-mod-win-x64
+          path: |
+            build/7z2603-mod-win-x64.zip
+
+      - name: Upload source artifact (GPL source compliance)
+        uses: actions/upload-artifact@v4
+        with:
+          name: 7z2603-mod-source
+          path: |
+            src/**
+            COPYING
+            COPYING.LESSER
+            NOTICE
+            LICENSE.md
+            README.md
+            scripts/**
+
+      - name: Publish GitHub Release (on tags)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: powershell
+        run: |
+          gh release create "$env:GITHUB_REF_NAME" `
+            "build/7z2603-mod-win-x64.zip" `
+            --repo "$env:GITHUB_REPOSITORY" `
+            --title "7-Zip MOD $env:GITHUB_REF_NAME" `
+            --notes "GPL-compliant release: binaries + Lang + licenses + source (src/) in the repo."

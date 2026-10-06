@@ -1,0 +1,50 @@
+7-Zip MOD — TorrentZip packager + PopCap PAK support
+======================================================
+
+This is a modification of 7-Zip 26.03 that embeds the TorrentZip engine and adds
+a PopCap .pak archive handler.
+
+Contributions / copyrights
+-------------------------
+- 7-Zip 26.03: Copyright (C) 1999-2026 Igor Pavlov.
+  Licensed under the GNU LGPL v2.1 (or later) with additional restrictions
+  (unRAR license restriction for RAR-related files; BSD-3/BSD-2 for LzfseDecoder,
+  ZstdDec, Xxh64; some files public domain). See src/DOC/License.txt and
+  src/DOC/copying.txt.
+
+- TorrentZip engine (trrntzip v1.3, C implementation): Copyright (C) its
+  original author, distributed under the GNU GPL v2 (or later at your option).
+  Upstream: https://github.com/0-wiz-0/trrntzip
+  Included both as pristine upstream sources (src/trrntzip-main) and as our
+  integration layer (src/trrntzip-engine). See COPYING and
+  src/trrntzip-main/COPYING.
+
+- zlib 1.2.2: Copyright (C) 1995-2004 Jean-loup Gailly and Mark Adler,
+  distributed under the zlib license. See src/zlib-1.2.2/README.
+
+- PopCap .pak handler (src/CPP/7zip/Archive/PakHandler.cpp): original code
+  written independently from the .pak format facts (magic, XOR 0xF7, cmp_paths
+  ordering, FILETIME layout). The reference tool Pistonight/pvz-bintools (GPLv3)
+  was used only as a byte-exact conformance target for verification; no code was
+  copied or adapted from it.
+
+- This modification (TorrentZip integration into 7-Zip's Zip handler, the
+  7zFM compression-dialog TorrentZip method + parameter lock, the language-file
+  additions, the engine wrapper in src/trrntzip-engine, and the PopCap .pak
+  handler + its 7zFM "PopCap PAK(PC)" method + parameter lock):
+  Copyright (C) 2026 the author of this modification.
+  Distributed under the GNU GPL v2 (see COPYING), as the resulting combined work.
+
+NO WARRANTY
+-----------
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+This NOTICE is informational; the authoritative terms are in the license texts
+referenced above (COPYING, COPYING.LESSER, src/DOC/License.txt,
+src/zlib-1.2.2/README).

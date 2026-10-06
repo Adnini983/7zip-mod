@@ -1,0 +1,21 @@
+description test -q: quiet mode
+return 0
+arguments -q -l dir
+file dir/another.zip small.zip small.tzip
+file dir/moretorrentzip.zip small.tzip small.tzip
+file dir/sub/one.zip small.zip small.tzip
+file dir/sub/torrentzip.zip small.tzip small.tzip
+stdout-replace '(dir)\\\\' '\1/'
+stdout-replace '(sub)\\\\' '\1/'
+stdout
+Rezipping - dir/another.zip
+--------------------------------------------------
+Adding - test.txt (31 bytes)...Done
+--------------------------------------------------
+Rezipped 1 compressed file totaling 31 bytes.
+Rezipping - dir/sub/one.zip
+--------------------------------------------------
+Adding - test.txt (31 bytes)...Done
+--------------------------------------------------
+Rezipped 1 compressed file totaling 31 bytes.
+end-of-inline-data

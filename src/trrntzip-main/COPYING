@@ -1,0 +1,19 @@
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+A copy of the GNU General Public License, version 2, is distributed
+with the program in the file "GPL2.txt".
+
+
+Moreover, this software includes (modified) code from minizip, which
+is distributed as part of zlib; in particular "src/minizip.h" and the
+files in "src/minizip/".
+The license for this code is the same as zlib. The full text of this
+license is included in at the end of "src/minizip/MiniZip64_info.txt".

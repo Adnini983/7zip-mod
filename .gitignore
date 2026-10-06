@@ -1,0 +1,28 @@
+# Build artifacts
+*.obj
+*.o
+*.lib
+*.exe
+*.dll
+*.pdb
+*.res
+*.pch
+*.ilk
+*.exp
+*.idb
+*.tlog
+*.log
+*.map
+*.user
+*.suo
+
+# Build directories
+x64/
+x86/
+trrntzip-build/
+Debug/
+Release/
+.vs/
+
+# Prebuilt engine library (rebuild from src/trrntzip-engine)
+src/trrntzip-engine/TorrentZipEngine.lib
